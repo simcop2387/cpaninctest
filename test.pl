@@ -87,6 +87,7 @@ sub dep_order {
     my @orders;
 
     for my $dep ($module->depends->@*) {
+        print "\r", $dep->name, "         ";
         push @orders, dep_order($dep);
     }
 
@@ -105,10 +106,6 @@ sub run_cpanm {
     run \@cmd, '>&', \$out;
 
     my $exitcode = $?;
-    if ($exitcode) {
-        print "command failed\n"; # TODO save output?
-        print $out;
-    }
 
     return ($exitcode, $out);
 }
@@ -133,8 +130,15 @@ sub test_module {
     }
 }
 
+$|++;
+print "Init\n";
+
 my $foo = Module->new_module('Moose');
 
-print Dumper([map {$_->name} uniq dep_order($foo)]);
+print "Building dep list\n";
+my @modules = map {$_->name} uniq dep_order($foo);
 
-test_module('Clone');
+for my $mod (@modules) {
+    print "Testing $mod\n";
+    test_module($mod);
+}
