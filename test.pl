@@ -4,6 +4,7 @@ use 5.22.0;
 package Module;
 use Moose;
 use Module::CoreList;
+use Storable;
 
 has 'name' => (is => 'ro');
 has 'version' => (is => 'ro');
@@ -16,6 +17,19 @@ has 'depends' => (
 );
 
 our %cache;
+if (-e 'cache.stor') {
+    eval {
+      my $cache_href=retrieve('cache.stor');
+      %cache = $cache_href->%*;
+    };
+    if ($@) {
+        print STDERR "Couldn't load cache $@\n";
+    }
+}
+
+END {
+ store \%cache, 'cache.stor';
+};
 
 sub new_module {
     my $class = shift;
@@ -64,7 +78,23 @@ use strict;
 use autodie;
 use warnings;
 use Data::Dumper;
+use List::Util qw/uniq/;
+
+sub dep_order {
+    my $module = shift;
+
+    my @orders;
+
+    for my $dep ($module->depends->@*) {
+        push @orders, dep_order($dep);
+    }
+
+    push @orders, $module;
+
+    return @orders;
+}
 
 my $foo = Module->new_module('Moose');
 $foo->print_deps(0, []);
 
+print Dumper([map {$_->name} uniq dep_order($foo)]);
