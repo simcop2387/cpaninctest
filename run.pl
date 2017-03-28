@@ -74,6 +74,38 @@ sub print_deps {
     }
 }
 
+package cpanfile;
+# HACK since cpan files are valid perl, i'm just using do/require
+
+our @mods;
+
+sub __parse_file {
+    my $file = shift;
+
+    require $file;
+}
+
+sub requires {
+    push @mods, $_[0];
+}
+
+sub recommends {
+    push @mods, $_[0];
+}
+
+sub conflicts {} # IGNORE These
+
+# we expect all types
+sub on {
+    my ($env, $code) = @_;
+    $code->();
+}
+
+sub feature {
+    my ($feat, $desc, $code) = @_;
+    $code->();
+}
+
 package main;
 use strict;
 use autodie;
@@ -158,6 +190,8 @@ sub main {
 
     if ($opt_cpanfile) {
     # TODO read cpanfile, via do/require
+        cpanfile::__parse_file($opt_cpanfile);
+        @mods_to_test = @cpanfile::mods;
     }
 
     my @modules;
