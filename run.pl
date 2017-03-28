@@ -74,12 +74,33 @@ sub print_deps {
     }
 }
 
+package main;
 use strict;
 use autodie;
 use warnings;
 use Data::Dumper;
 use List::Util qw/uniq/;
 use IPC::Run qw/run/;
+use Getopt::Long;
+
+our $opt_perlbrew_env='blead';
+our $opt_module;
+our $opt_cpanfile;
+our $opt_help;
+
+GetOptions ("module=s" => \$opt_module,
+            "cpanfile=s"   => \$opt_cpanfile,      # string
+            "perlbrew_env=s" => \$opt_perlbrew_env,
+            "help"  => \$opt_help);   # flagV
+
+if ((!$opt_module && !$opt_cpanfile) || ($opt_module && $opt_cpanfile) || $opt_help) {
+    usage(); exit(1);
+}
+
+sub usage {
+    print "Call with either --cpanfile xor --module to specify what to test.\n",
+          "Use --perlbrew_env to specify which perl install to use, defaults to blead\n";
+}
 
 sub dep_order {
     my $module = shift;
@@ -100,7 +121,7 @@ sub run_cpanm {
     my ($module, $incstatus) = @_;
 
     $ENV{PERL_USE_UNSAFE_INC} = !!$incstatus;
-    my @cmd = (qw/perlbrew exec --with perlbot-inctest cpanm --reinstall --verbose/, $module);
+    my @cmd = (qw/perlbrew exec --with/, $opt_perlbrew_env, qw/cpanm --reinstall --verbose/, $module);
 
     my $out;
     run \@cmd, '>&', \$out;
@@ -130,15 +151,29 @@ sub test_module {
     }
 }
 
-$|++;
-print "Init\n";
+sub main {
+    $|++;
 
-my $foo = Module->new_module('Moose');
+    my @mods_to_test = ($opt_module);
 
-print "Building dep list\n";
-my @modules = map {$_->name} uniq dep_order($foo);
+    if ($opt_cpanfile) {
+    # TODO read cpanfile, via do/require
+    }
 
-for my $mod (@modules) {
-    print "Testing $mod\n";
-    test_module($mod);
+    my @modules;
+
+    print "Building dep list sorry, this'll take a while\n";
+    for my $mtt (@mods_to_test) {
+        my $mod = Module->new_module($mtt);
+        push @modules, map {$_->name} uniq dep_order($mod);
+    }
+
+    @modules = uniq(@modules);
+
+    for my $mod (@modules) {
+        print "Testing $mod\n";
+        test_module($mod);
+    }
 }
+
+main();
