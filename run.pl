@@ -202,6 +202,7 @@ sub main {
         push @modules, map {$_->name} uniq dep_order($mod);
     }
 
+    print "\n";
     @modules = uniq(@modules);
 
     for my $mod (@modules) {
