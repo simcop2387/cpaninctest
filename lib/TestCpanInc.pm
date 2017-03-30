@@ -26,7 +26,7 @@ sub dep_order {
     my @orders;
 
     for my $dep ($module->depends->@*) {
-        print "\r", $dep->name, "         ";
+#        print "\r", $dep->name, "         ";
         push @orders, dep_order($dep);
     }
 

@@ -44,6 +44,18 @@ sub new_module {
     $cache{$dist} = Module->new(name => $name);
 }
 
+{
+    my @banned = do {open (my $fh, "<banned.lst"); map {chomp; $Dist::mod_to_dist{$_} // $_} <$fh>};
+    use Data::Dumper;
+    print Dumper(\@banned);
+    sub _is_banned {
+        my $module = shift;
+        my $dist = $Dist::mod_to_dist{$module} // $module;
+
+        return _is_core($module) || ($dist ~~ @banned);
+    }
+}
+
 sub _is_core {
     my $module = shift;
     my ($name, $version) = split (/[\-~]/, $module);
@@ -58,10 +70,12 @@ sub get_deps {
     my $module = $self->name;
 
     # skip perl, or core modules
-    return [] if _is_core($module);
+    return [] if _is_banned($module);
 
+    print "Getting deps for $module\n";
     my @cmd = (qw|cpanm --quiet --mirror http://cpan.simcop2387.info/ --showdeps|, $module);
 
+    $SIG{TERM}="ignore";
     my $out;
     run \@cmd, '>&', \$out;
 

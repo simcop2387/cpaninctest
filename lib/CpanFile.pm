@@ -11,10 +11,12 @@ sub __parse_file {
 }
 
 sub requires {
+    print "including $_[0]\n";
     push @mods, $_[0];
 }
 
 sub recommends {
+    print "including $_[0]\n";
     push @mods, $_[0];
 }
 
