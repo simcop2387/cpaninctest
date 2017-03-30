@@ -10,6 +10,16 @@ use IPC::Run qw/run/;
 
 our $perlbrew_env = 'blead';
 
+sub remove_imc {
+    my ($module, $incstatus) = @_;
+
+    $ENV{PERL_USE_UNSAFE_INC} = 1;
+    my @cmd = (qw/perlbrew exec --with/, $perlbrew_env, qw|cpanm --force --uninstall inc::Module::Install |);
+
+    my $out;
+    run \@cmd, '>&', \$out;
+}
+
 sub dep_order {
     my $module = shift;
 
@@ -41,9 +51,11 @@ sub run_cpanm {
 
 sub test_module {
     my $module = shift;
+    remove_imc();
     my ($ret, $noincout) = run_cpanm($module, 0);
 
     if ($ret) {
+        remove_imc();
         my ($ret2, $incout) = run_cpanm($module, 1);
 
         if (!$ret2) {
