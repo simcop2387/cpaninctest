@@ -22,7 +22,7 @@ sub remove_imc {
 }
 
 our $last_dep = time();
-our @total_deps = ();
+our %total_deps = ();
 
 sub dep_order {
     my $module = shift;
@@ -38,8 +38,8 @@ sub dep_order {
 	}
 
 	next if (Module::_is_banned($dep->name));
-	next if ($dep->dist ~~ @total_deps); # skip it if we've already added this to the total deps
-	push @total_deps, $dep->dist;
+	next if ($total_deps{$dep->dist}); # skip it if we've already added this to the total deps
+	$total_deps{$dep->dist} = 1;
         push @orders, dep_order($dep, $level+1);
     }
 
