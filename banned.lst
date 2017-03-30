@@ -2,3 +2,7 @@ Inline::Octave
 mod_perl2
 Vcf4_0
 VcfReader
+CPAN::Test::Dummy::Perl5::Make::CircDepeOne
+CPAN::Test::Dummy::Perl5::Make::CircDepeThree
+CPAN::Test::Dummy::Perl5::Make::CircDepeTwo
+OurNet::BBSAgent
