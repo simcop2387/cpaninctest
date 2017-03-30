@@ -50,12 +50,18 @@ sub test_module {
             print ">>>>Module $module failed to build without UNSAFE INC\n";
             open(my $fh, ">", "logs/${module}_incfailure.log");
             print $fh $noincout;
+
+            return "inc failed";
         } else {
             print "<<<<Module $module fails to build entirely\n";
 
             open(my $fh, ">", "logs/${module}_genfailure.log");
             print $fh $incout;
+
+            return "gen failed";
         }
     }
+
+    return "success";
 }
 

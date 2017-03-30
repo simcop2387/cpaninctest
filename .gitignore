@@ -1,3 +1,4 @@
 cache.stor
 *.swp
 logs/*.log
+*.stor
