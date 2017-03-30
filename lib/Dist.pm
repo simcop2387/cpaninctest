@@ -1,4 +1,4 @@
-package Dists;
+package Dist;
 use strict;
 use warnings;
 use Data::Dumper;
