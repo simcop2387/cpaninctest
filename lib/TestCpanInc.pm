@@ -7,6 +7,7 @@ use warnings;
 use Data::Dumper;
 use List::Util qw/uniq/;
 use IPC::Run qw/run/;
+use Module;
 
 our $perlbrew_env = 'blead';
 
@@ -20,14 +21,23 @@ sub remove_imc {
     run \@cmd, '>&', \$out;
 }
 
+our $last_dep = time();
+
 sub dep_order {
     my $module = shift;
+    my $level = shift || 0;
 
     my @orders;
 
     for my $dep ($module->depends->@*) {
-#        print "\r", $dep->name, "         ";
-        push @orders, dep_order($dep);
+	
+	if ($level >= 200) {
+        	print $dep->name, "\n";
+		$last_dep = time();
+	}
+
+	next if (Module::_is_banned($dep->name));
+        push @orders, dep_order($dep, $level+1);
     }
 
     push @orders, $module;
