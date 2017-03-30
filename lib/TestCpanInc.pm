@@ -48,12 +48,12 @@ sub test_module {
 
         if (!$ret2) {
             print ">>>>Module $module failed to build without UNSAFE INC\n";
-            open(my $fh, ">", "logs/${$}_${module}_incfailure.log");
+            open(my $fh, ">", "logs/${module}_incfailure.log");
             print $fh $noincout;
         } else {
             print "<<<<Module $module fails to build entirely\n";
 
-            open(my $fh, ">", "logs/${$}_${module}_genfailure.log");
+            open(my $fh, ">", "logs/${module}_genfailure.log");
             print $fh $incout;
         }
     }

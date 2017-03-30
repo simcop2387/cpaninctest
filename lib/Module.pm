@@ -27,9 +27,10 @@ if (-e 'modcache.stor') {
     }
 }
 
-END {
+sub __save_cache {
  store \%cache, 'modcache.stor';
 };
+END {__save_cache};
 
 sub new_module {
     my $class = shift;
@@ -52,21 +53,6 @@ sub _is_core {
     return $ret;
 }
 
-sub get_dist {
-    my $self=shift;
-    my $module = $self->name;
-
-    # skip perl, or core modules
-    return 'perl' if _is_core($module);
-
-    my @cmd = (qw|cpanm --quiet --mirror http://cpan.simcop2387.info/ --info|, $module);
-    my $out;
-    run \@cmd, '>&', \$out;
-
-    chomp $out;
-    return $out;
-}
-
 sub get_deps {
     my $self=shift;
     my $module = $self->name;
@@ -79,7 +65,9 @@ sub get_deps {
     my $out;
     run \@cmd, '>&', \$out;
 
-    return [map {Module->new_module($_)} grep {!_is_core($_)} split($/, $out)];
+    my $deps = [map {Module->new_module($_)} grep {!_is_core($_)} split($/, $out)];
+    __save_cache;
+    return $deps;
 }
 
 sub print_deps {
@@ -90,38 +78,6 @@ sub print_deps {
         print ((" " x $level), $name, "\n");
         $dep->print_deps($level+1, [@$v, $name]) unless ($name ~~ @$v);
     }
-}
-
-package cpanfile;
-# HACK since cpan files are valid perl, i'm just using do/require
-
-our @mods;
-
-sub __parse_file {
-    my $file = shift;
-
-    require $file;
-}
-
-sub requires {
-    push @mods, $_[0];
-}
-
-sub recommends {
-    push @mods, $_[0];
-}
-
-sub conflicts {} # IGNORE These
-
-# we expect all types
-sub on {
-    my ($env, $code) = @_;
-    $code->();
-}
-
-sub feature {
-    my ($feat, $desc, $code) = @_;
-    $code->();
 }
 
 1;

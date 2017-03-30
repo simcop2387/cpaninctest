@@ -16,6 +16,5 @@ while (my $l = <$fh>) {
     $mod_to_dist{$module} = $dist;
 }
 
-print Dumper(\%dist_to_mod);
 
 1;
