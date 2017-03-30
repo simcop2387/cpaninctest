@@ -8,6 +8,9 @@ use IPC::Run qw/run/;
 no warnings 'experimental';
 
 has 'name' => (is => 'ro');
+has 'dist' => (is => 'ro',
+	builder => '_get_dist',
+	lazy => 1);
 
 has 'depends' => (
     builder => 'get_deps',
@@ -15,6 +18,11 @@ has 'depends' => (
     isa => 'ArrayRef[Module]',
     lazy => 1,
 );
+
+sub _get_dist {
+	my $self = shift;
+	return $Dist::mod_to_dist{$self->name} // $self->name;
+}
 
 our %cache;
 if (-e 'modcache.stor') {

@@ -22,6 +22,7 @@ sub remove_imc {
 }
 
 our $last_dep = time();
+our @total_deps = ();
 
 sub dep_order {
     my $module = shift;
@@ -31,12 +32,14 @@ sub dep_order {
 
     for my $dep ($module->depends->@*) {
 	
-	if ($level >= 200) {
-        	print $dep->name, "\n";
+	if (time() - $last_dep >= 10  || $level >= 200) {
+        	print $dep->name," ",$dep->dist, " " ,$level, "\n";
 		$last_dep = time();
 	}
 
 	next if (Module::_is_banned($dep->name));
+	next if ($dep->dist ~~ @total_deps); # skip it if we've already added this to the total deps
+	push @total_deps, $dep->dist;
         push @orders, dep_order($dep, $level+1);
     }
 
@@ -87,3 +90,4 @@ sub test_module {
     return "success";
 }
 
+1;
