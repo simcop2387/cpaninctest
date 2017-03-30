@@ -5,6 +5,7 @@ package Module;
 use Moose;
 use Module::CoreList;
 use Storable;
+use IPC::Run qw/run/;
 
 has 'name' => (is => 'ro');
 has 'version' => (is => 'ro');
@@ -59,9 +60,12 @@ sub get_deps {
     # skip perl, or core modules
     return [] if _is_core($module);
 
-    open(my $ph, "-|", qw/cpanm --quiet --showdeps/, $module);
+    my @cmd = (qw|cpanm --quiet --mirror http://cpan.simcop2387.info/ --showdeps|, $module);
 
-    return [map {Module->new_module($_)} grep {!_is_core($_)} <$ph>];
+    my $out;
+    run \@cmd, '>&', \$out;
+
+    return [map {Module->new_module($_)} grep {!_is_core($_)} split($/, $out)];
 }
 
 sub print_deps {
@@ -153,7 +157,7 @@ sub run_cpanm {
     my ($module, $incstatus) = @_;
 
     $ENV{PERL_USE_UNSAFE_INC} = !!$incstatus;
-    my @cmd = (qw/perlbrew exec --with/, $opt_perlbrew_env, qw/cpanm --reinstall --verbose/, $module);
+    my @cmd = (qw/perlbrew exec --with/, $opt_perlbrew_env, qw|cpanm --reinstall --verbose --mirror http://cpan.simcop2387.info/ |, $module);
 
     my $out;
     run \@cmd, '>&', \$out;
